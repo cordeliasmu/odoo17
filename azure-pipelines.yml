@@ -4,9 +4,6 @@ trigger:
       - Staging
       - master
 
-pool:
-  name: Default
-
 variables:
   repoUrl: 'https://github.com/cordeliasmu/odoo17.git'
   updateScript: '/home/esmadmin/deploy-temp/update_code.sh'
@@ -15,7 +12,7 @@ variables:
 stages:
 
 # =========================
-# STAGING STAGE
+# STAGING
 # =========================
 - stage: Staging
   displayName: Deploy to Staging
@@ -28,38 +25,29 @@ stages:
       runOnce:
         deploy:
           steps:
+          - checkout: none
 
-          - task: SSH@0
-            displayName: "Sync Code - Staging"
-            inputs:
-              sshEndpoint: 'ssh-odoo17'
-              runOptions: commands
-              commands: |
-                set -e
-                echo "Deploying branch: $(Build.SourceBranchName)"
+          - script: |
+              set -e
+              echo "Deploying branch: $(Build.SourceBranchName)"
 
-                cd $(stagePath)
-                rm -rf deploy-temp odoo17
+              cd $(stagePath)
+              rm -rf deploy-temp odoo17
 
-                git clone -b Staging $(repoUrl) --quiet
-                mv odoo17 deploy-temp
+              git clone -b Staging $(repoUrl) --quiet
+              mv odoo17 deploy-temp
 
-                cd deploy-temp
-                rm -f .DS_Store
-                rm -rf .github
+              cd deploy-temp
+              rm -f .DS_Store
+              rm -rf .github
 
-          - task: SSH@0
-            displayName: "Run Update Script - Staging"
-            inputs:
-              sshEndpoint: 'ssh-odoo17'
-              runOptions: commands
-              commands: |
-                echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' chmod +x $(updateScript)
-                echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' $(updateScript)
+          - script: |
+              echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' chmod +x $(updateScript)
+              echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' $(updateScript)
 
 
 # =========================
-# PRODUCTION STAGE
+# PRODUCTION
 # =========================
 - stage: Production
   displayName: Deploy to Production
@@ -72,31 +60,22 @@ stages:
       runOnce:
         deploy:
           steps:
+          - checkout: none
 
-          - task: SSH@0
-            displayName: "Sync Code - Production"
-            inputs:
-              sshEndpoint: 'ssh-odoo17-production'
-              runOptions: commands
-              commands: |
-                set -e
-                echo "Deploying branch: $(Build.SourceBranchName)"
+          - script: |
+              set -e
+              echo "Deploying branch: $(Build.SourceBranchName)"
 
-                cd $(stagePath)
-                rm -rf deploy-temp odoo17
+              cd $(stagePath)
+              rm -rf deploy-temp odoo17
 
-                git clone -b master $(repoUrl) --quiet
-                mv odoo17 deploy-temp
+              git clone -b master $(repoUrl) --quiet
+              mv odoo17 deploy-temp
 
-                cd deploy-temp
-                rm -f .DS_Store
-                rm -rf .github
+              cd deploy-temp
+              rm -f .DS_Store
+              rm -rf .github
 
-          - task: SSH@0
-            displayName: "Run Update Script - Production"
-            inputs:
-              sshEndpoint: 'ssh-odoo17-production'
-              runOptions: commands
-              commands: |
-                echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' chmod +x $(updateScript)
-                echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' $(updateScript)
+          - script: |
+              echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' chmod +x $(updateScript)
+              echo "$(STAGINGUSERPASSWORD)" | sudo -S -p '' $(updateScript)
